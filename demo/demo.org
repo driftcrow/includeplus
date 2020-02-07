@@ -1,0 +1,26 @@
+#+TITLE: demo
+
+
+* Type
+** source
+*** from shell
+#+plus: (ipp-from-shell "ls -l")
+#+plus: (replace-regexp "\n" "\n\n" nil (point-min) (point-max))
+# #+include: ""
+
+*** Excel
+#+plus: (ipp-excel "data/SampleData.xlsx" t t)
+#  #+include: ""
+
+*** Word
+use [[https://github.com/ankushshah89/python-docx2txt][docx2txt]] to convert docx to text then import.
+#+plus: (ipp-from-word "data/demo.docx")
+#+include: ""  :src quote :lines "1-10"
+
+*** web
+#+plus: (insert (ip--get-url "https://v1.hitokoto.cn/?encode=text"))
+#+include: "" :src quote
+
+** process
+** select
+*** org-ql
