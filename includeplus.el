@@ -1,7 +1,7 @@
 ;;; includeplus.el -*- lexical-binding: t; -*-
 ;;; Code:
 ;;;
-(require 'includeplusplus)
+;; (require 'includeplusplus)
 
 (defvar ip-plus-re "^[ \t]*#\\+plus:"
   "Include plus block main symbol regexp.")
@@ -10,7 +10,7 @@
 (defvar ip-cache-file-list '()
   "All cache file list for clean interval.")
 
-(defun ip-update-include-plus (&optional included dir footnotes)
+(defun ip-update-include-plus (orig-fn &rest args)
   "update every include keyword plus in buffer.
 Optional argument INCLUDED is a list of included file names along
 with their line restriction, when appropriate.  It is used to
@@ -20,6 +20,7 @@ paths.  Optional argument FOOTNOTES is a hash-table used for
 storing and resolving footnotes.  It is created automatically."
   (let ((includer-file (buffer-file-name (buffer-base-buffer)))
         (case-fold-search t)
+        ip-cache-list
         (include-re "^[ \t]*#\\+INCLUDE:"))
     ;; Expand INCLUDE keywords.
     (goto-char (point-min))
@@ -45,19 +46,27 @@ storing and resolving footnotes.  It is created automatically."
                                    (setq matched
                                          (replace-match "" nil nil matched 1)))
                                  (expand-file-name (org-strip-quotes matched)
-                                                   dir)))
+                                                   (file-name-directory (buffer-file-name)))))
                            )))
                    (plus-file (ip-create-plus-file plus file))
                    )
 
               ;; update plus file
               (when plus-file
+                (push plus-file ip-cache-list)
                 (if (looking-at  "^[ \t]*#\\+INCLUDE: *\\(\".*?\"\\|\\S-+\\)\\(?:\\s-+\\|$\\)")
                     (replace-match (concat " \"" plus-file (if location (concat "::" location) "") "\"") :fixedcase :literal nil 1))
                 )
-              ;; TODO: remove plus keyword
-             
-              )))))))
+              ;; TODO: remove plus keywords
+
+              )))))
+    ;; expand normal include keyword
+    (apply orig-fn args)
+
+    ;; remove create temp cached files
+    ;;
+    ;; (mapc #'delete-file ip-cache-list)
+    ))
 
 (defun ip-preview ()
   "Preview current include block contents."
@@ -98,10 +107,12 @@ storing and resolving footnotes.  It is created automatically."
       funcs)
     ))
 
-(defun ip-create-plus-file (plus &optional file )
+(defun ip-create-plus-file (plus &optional file)
   "Create plus cache file in current dir or same dir with file."
   (let* ((plus-file (if file
-                        (ip-make-temp-file ".ip-cache-" (file-name-directory file))
+                        (if (file-directory-p file)
+                            (ip-make-temp-file ".ip-cache-" file)
+                          (ip-make-temp-file ".ip-cache-" (file-name-directory file)))
                       (ip-make-temp-file ".ip-cache-"))))
     (with-temp-file plus-file
       ;; insert src file contents
@@ -110,7 +121,15 @@ storing and resolving footnotes.  It is created automatically."
        ((not (file-readable-p file))
         (error "Cannot read src file %s" file))
        (t
-        (insert-file-contents file)
+        (insert (with-temp-buffer
+                  (let ((org-inhibit-startup t))
+                    (org-mode)
+                    (insert
+                     (org-export--prepare-file-contents
+                      file
+                      )))
+                  (org-export-expand-include-keyword)
+                  (buffer-string)))
         ))
 
       (if (stringp plus)
@@ -130,12 +149,15 @@ storing and resolving footnotes.  It is created automatically."
       (make-temp-file-internal absolute-prefix
                                (if dir-flag t) (or suffix "") text))))
 
+(defun ip-cache-file (file)
+  )
+
 (defun ip-cache-clean ()
   "Clean ip cache file interval."
   )
 
 
-(advice-add 'org-export-expand-include-keyword :before #'ip-update-include-plus)
+(advice-add 'org-export-expand-include-keyword :around #'ip-update-include-plus)
 
 (provide 'includeplus)
 ;;; includeplus.el ends here

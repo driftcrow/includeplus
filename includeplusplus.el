@@ -1,6 +1,8 @@
 ;;; includeplusplus.el -*- lexical-binding: t; -*-
-
-(defun ip--get-url (url)
+(defun ip-download (url)
+"Download file for URL"
+  )
+(defun ipp-get-url (url)
   "Return content for URL as string.
 This uses `url-retrieve-synchronously' to make a request with the
 URL, then returns the response body.  Since that function returns

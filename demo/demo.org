@@ -1,5 +1,5 @@
 #+TITLE: demo
-
+#+startup: showall
 
 * Type
 ** source
@@ -9,17 +9,17 @@
 # #+include: ""
 
 *** Excel
-#+plus: (ipp-excel "data/SampleData.xlsx" t t)
-#  #+include: ""
+#+plus: (ipp-from-excel "data/SampleData.xlsx" t t)
+#+include: "" :lines "1-10"
 
 *** Word
 use [[https://github.com/ankushshah89/python-docx2txt][docx2txt]] to convert docx to text then import.
 #+plus: (ipp-from-word "data/demo.docx")
-#+include: ""  :src quote :lines "1-10"
+#+include: ""  :src quote :lines "3-13"
 
 *** web
-#+plus: (insert (ip--get-url "https://v1.hitokoto.cn/?encode=text"))
-#+include: "" :src quote
+#+plus: (insert (ipp-get-url "https://v1.hitokoto.cn/?encode=text"))
+#+include: "data/table.org" :src quote
 
 ** process
 ** select
