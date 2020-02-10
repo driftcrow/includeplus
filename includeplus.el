@@ -10,7 +10,7 @@
 (defvar ip-cache-file-list '()
   "All cache file list for clean interval.")
 
-(defun ip-update-include-plus (orig-fn &rest args)
+(defun ip-update-include-plus (orig-fn &optional included dir footnotes)
   "update every include keyword plus in buffer.
 Optional argument INCLUDED is a list of included file names along
 with their line restriction, when appropriate.  It is used to
@@ -46,9 +46,9 @@ storing and resolving footnotes.  It is created automatically."
                                    (setq matched
                                          (replace-match "" nil nil matched 1)))
                                  (expand-file-name (org-strip-quotes matched)
-                                                   (file-name-directory (buffer-file-name)))))
+                                                   dir )))
                            )))
-                   (plus-file (ip-create-plus-file plus file))
+                   (plus-file (ip-create-plus-file plus file ))
                    )
 
               ;; update plus file
@@ -61,11 +61,11 @@ storing and resolving footnotes.  It is created automatically."
 
               )))))
     ;; expand normal include keyword
-    (apply orig-fn args)
+    (funcall orig-fn included dir footnotes)
 
     ;; remove create temp cached files
     ;;
-    ;; (mapc #'delete-file ip-cache-list)
+    (mapc #'delete-file ip-cache-list)
     ))
 
 (defun ip-preview ()
@@ -107,7 +107,7 @@ storing and resolving footnotes.  It is created automatically."
       funcs)
     ))
 
-(defun ip-create-plus-file (plus &optional file)
+(defun ip-create-plus-file (plus &optional file )
   "Create plus cache file in current dir or same dir with file."
   (let* ((plus-file (if file
                         (if (file-directory-p file)
@@ -128,7 +128,10 @@ storing and resolving footnotes.  It is created automatically."
                      (org-export--prepare-file-contents
                       file
                       )))
-                  (org-export-expand-include-keyword)
+                  (org-export-expand-include-keyword
+                   nil
+                   (file-name-directory file)
+                   )
                   (buffer-string)))
         ))
 

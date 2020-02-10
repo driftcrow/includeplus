@@ -19,7 +19,7 @@ use [[https://github.com/ankushshah89/python-docx2txt][docx2txt]] to convert doc
 
 *** web
 #+plus: (insert (ipp-get-url "https://v1.hitokoto.cn/?encode=text"))
-#+include: "data/table.org" :src quote
+#+include: "a.org" :src quote
 
 ** process
 ** select

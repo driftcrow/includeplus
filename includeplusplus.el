@@ -1,7 +1,11 @@
 ;;; includeplusplus.el -*- lexical-binding: t; -*-
-(defun ip-download (url)
-"Download file for URL"
+(defun ip-download (url &optional file)
+"TODO:Download file for URL"
+(let ((file (if file (expand-file-name file)  (make-temp-file "ip-"))))
+  (url-copy-file url file t t)
+  file)
   )
+
 (defun ipp-get-url (url)
   "Return content for URL as string.
 This uses `url-retrieve-synchronously' to make a request with the
@@ -65,6 +69,7 @@ headers ourselves."
                   (buffer-string))))
 
     (insert text)
+    ;; TODO: change list num to star
     ))
 
 (provide 'includeplusplus)
