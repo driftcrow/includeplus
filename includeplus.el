@@ -7,8 +7,7 @@
   "Include plus block main symbol regexp.")
 (defvar ip-cache-director "./.plus"
   "Include plus create cache file directory.")
-(defvar ip-cache-file-list '()
-  "All cache file list for clean interval.")
+
 
 (defun ip-update-include-plus (orig-fn &optional included dir footnotes)
   "update every include keyword plus in buffer.
@@ -46,9 +45,9 @@ storing and resolving footnotes.  It is created automatically."
                                    (setq matched
                                          (replace-match "" nil nil matched 1)))
                                  (expand-file-name (org-strip-quotes matched)
-                                                   dir )))
+                                                   dir)))
                            )))
-                   (plus-file (ip-create-plus-file plus file ))
+                   (plus-file (ip-create-plus-file plus file footnotes))
                    )
 
               ;; update plus file
@@ -77,12 +76,6 @@ storing and resolving footnotes.  It is created automatically."
   "Update include block cache."
   )
 
-(defun ip-get-option ()
-  "Get the current include block eval options."
-  (let ((include-re "^[ \t]*#\\+INCLUDE:"))
-    )
-  )
-
 (defun ip-eval-string (string)
   (eval (car (read-from-string (format "(progn %s)" string)))))
 
@@ -107,7 +100,7 @@ storing and resolving footnotes.  It is created automatically."
       funcs)
     ))
 
-(defun ip-create-plus-file (plus &optional file )
+(defun ip-create-plus-file (plus &optional file footnotes)
   "Create plus cache file in current dir or same dir with file."
   (let* ((plus-file (if file
                         (if (file-directory-p file)
@@ -128,9 +121,12 @@ storing and resolving footnotes.  It is created automatically."
                      (org-export--prepare-file-contents
                       file
                       )))
+                  ;; TODO: consider self include question
+                  ;; TODO: confirm relative path embed include question
                   (org-export-expand-include-keyword
                    nil
                    (file-name-directory file)
+                   footnotes
                    )
                   (buffer-string)))
         ))
@@ -152,12 +148,7 @@ storing and resolving footnotes.  It is created automatically."
       (make-temp-file-internal absolute-prefix
                                (if dir-flag t) (or suffix "") text))))
 
-(defun ip-cache-file (file)
-  )
 
-(defun ip-cache-clean ()
-  "Clean ip cache file interval."
-  )
 
 
 (advice-add 'org-export-expand-include-keyword :around #'ip-update-include-plus)
