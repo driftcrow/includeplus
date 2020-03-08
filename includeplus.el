@@ -5,9 +5,12 @@
 
 (defvar ip-plus-re "^[ \t]*#\\+plus:"
   "Include plus block main symbol regexp.")
-(defvar ip-cache-director "./.plus"
-  "Include plus create cache file directory.")
 
+(defvar ip-plus-vars nil
+  "Include plus variable for transfer in multi functions.")
+
+(defvar ip-relative-path-re-list '("\\[\\[file:\\(.+?\\)]\\(?:\\[\\(\\(?:\\|.\\)+?\\)]\\)?]")
+  "Include plus update relative path regexp list.")
 
 (defun ip-update-include-plus (orig-fn &optional included dir footnotes)
   "update every include keyword plus in buffer.
@@ -123,6 +126,7 @@ storing and resolving footnotes.  It is created automatically."
                       )))
                   ;; TODO: consider self include question
                   ;; TODO: confirm relative path embed include question
+                  (ip-update-relative-path)
                   (org-export-expand-include-keyword
                    nil
                    (file-name-directory file)
@@ -148,8 +152,29 @@ storing and resolving footnotes.  It is created automatically."
       (make-temp-file-internal absolute-prefix
                                (if dir-flag t) (or suffix "") text))))
 
+(defun ip-update-relative-path (&optional dir)
+  "Update relative path to DIR.
 
+ when file in string-mathch data in ip-relatvie-path-re-list."
+  (when ip-relative-path-re-list
+    (mapc
+     (lambda(re)
+       (save-excursion
+         (goto-char (point-min))
+         (while
+             (re-search-forward re nil t)
+           (let* ((file (match-string-no-properties 1))
+                  (r-file (expand-file-name file dir)))
+             (replace-match r-file :fixedcase :literal nil 1)
+             )
+           )))
+     ip-relative-path-re-list))
+  )
 
+(defun ip-get (name &optional default)
+  "Get include plus variable."
+
+  )
 
 (advice-add 'org-export-expand-include-keyword :around #'ip-update-include-plus)
 
